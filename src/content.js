@@ -67,4 +67,17 @@ const urlObserver = new MutationObserver(() => {
     startSkip();
   }
 });
-urlObserver.observe(document.body, { childList: true, subtree: true });
+
+// bodyが存在する場合のみ監視開始
+function startUrlObserver() {
+  if (document.body) {
+    urlObserver.observe(document.body, { childList: true, subtree: true });
+    console.log('[NicoAdsSkip] URL監視開始');
+  }
+}
+
+if (document.body) {
+  startUrlObserver();
+} else {
+  document.addEventListener('DOMContentLoaded', startUrlObserver);
+}
