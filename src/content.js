@@ -13,7 +13,12 @@ function skip() {
   const videos = document.getElementsByTagName('video');
 
   // スキップボタンがあればクリック
-  clickSkipButton();
+  if (clickSkipButton()) {
+    // スキップボタンをクリックしたら監視停止
+    clearInterval(adSkip);
+    adSkip = null;
+    return;
+  }
 
   // 2番目以降のvideo要素（広告）をチェック
   for (let i = 1; i < videos.length; i++) {
@@ -34,13 +39,13 @@ function skip() {
       adVideo.pause();
       adVideo.style.display = "none";
 
-      console.log('[NicoAdsSkip] 広告スキップ完了');
-    }
-  }
+      // 監視停止
+      clearInterval(adSkip);
+      adSkip = null;
 
-  // メイン動画が一時停止中なら再生
-  if (videos[0] && videos[0].paused && videos[0].src) {
-    videos[0].play().catch(() => {});
+      console.log('[NicoAdsSkip] 広告スキップ完了');
+      return;
+    }
   }
 }
 
