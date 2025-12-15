@@ -7,27 +7,37 @@ console.log('[NicoAdsSkip] 拡張機能が読み込まれました');
 let adSkip = null;
 
 /**
- * 広告スキップ処理（ユーザー提供のロジック）
+ * 広告スキップ処理
  */
 function skip() {
   const videos = document.getElementsByTagName('video');
-
-  // デバッグ: video要素の数と状態を出力
-  console.log('[NicoAdsSkip] video要素数:', videos.length);
-  for (let i = 0; i < videos.length; i++) {
-    console.log(`[NicoAdsSkip] video[${i}] src:`, videos[i].src ? videos[i].src.substring(0, 50) + '...' : '(empty)');
-  }
 
   // 2番目のvideo要素（広告）をチェック
   if (videos[1] == null) {
     // 広告なし
   } else if (videos[1].src != "") {
     console.log('[NicoAdsSkip] 広告検出！スキップします');
+
+    // 広告動画を停止・無効化
     videos[1].src = "";
     videos[1].pause();
+    videos[1].style.display = "none";
+    videos[1].remove();  // DOM から削除
+
+    // メイン動画を再生
+    if (videos[0]) {
+      videos[0].muted = false;
+      videos[0].play().catch(() => {});
+      console.log('[NicoAdsSkip] メイン動画再生開始');
+    }
+
     clearInterval(adSkip);
     adSkip = null;
     console.log('[NicoAdsSkip] 広告スキップ完了');
+  } else if (videos[1]) {
+    // srcが空でも広告要素があれば即座に非表示
+    videos[1].style.display = "none";
+    videos[1].muted = true;
   }
 }
 
