@@ -1,81 +1,25 @@
 /**
  * Nico Ads Skip - ニコニコ動画広告スキップ
+ * 参考: https://qiita.com/gmnori/items/68695a5765e1bd68ca8d
  */
-
-console.log('[NicoAdsSkip] 拡張機能が読み込まれました');
 
 let adSkip = null;
 
 /**
- * 広告スキップ処理
+ * 広告スキップ処理（シンプル版）
+ * videoタグの2つ目のsrcを消すだけ
  */
 function skip() {
   const videos = document.getElementsByTagName('video');
 
-  // スキップボタンがあればクリック
-  if (clickSkipButton()) {
-    // スキップボタンをクリックしたら監視停止
+  if (videos[1] == null) {
+    // 広告なし
+  } else if (videos[1].src != "") {
+    // 広告検出 → srcを消す
+    videos[1].src = "";
     clearInterval(adSkip);
     adSkip = null;
-    return;
   }
-
-  // 2番目以降のvideo要素（広告）をチェック
-  for (let i = 1; i < videos.length; i++) {
-    const adVideo = videos[i];
-    if (adVideo && adVideo.src !== "") {
-      console.log('[NicoAdsSkip] 広告検出！スキップします');
-
-      // 広告を最後までスキップ
-      if (adVideo.duration) {
-        adVideo.currentTime = adVideo.duration;
-      }
-
-      // 終了イベントを発火
-      adVideo.dispatchEvent(new Event('ended'));
-
-      // 停止・無効化
-      adVideo.src = "";
-      adVideo.pause();
-      adVideo.style.display = "none";
-
-      // 監視停止
-      clearInterval(adSkip);
-      adSkip = null;
-
-      console.log('[NicoAdsSkip] 広告スキップ完了');
-      return;
-    }
-  }
-}
-
-/**
- * スキップボタンを探してクリック
- */
-function clickSkipButton() {
-  // 様々なスキップボタンのセレクタを試す
-  const selectors = [
-    '[class*="skip"]',
-    '[class*="Skip"]',
-    '[data-click-action*="skip"]',
-    'button[class*="ad"]',
-    '.SkipButton',
-    '.skip-button',
-    '[aria-label*="スキップ"]',
-    '[aria-label*="skip"]'
-  ];
-
-  for (const selector of selectors) {
-    const buttons = document.querySelectorAll(selector);
-    for (const btn of buttons) {
-      if (btn.offsetParent !== null) {  // 表示されている要素のみ
-        console.log('[NicoAdsSkip] スキップボタンをクリック');
-        btn.click();
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 /**
