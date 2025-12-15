@@ -12,33 +12,65 @@ let adSkip = null;
 function skip() {
   const videos = document.getElementsByTagName('video');
 
-  // 2番目のvideo要素（広告）をチェック
-  if (videos[1] == null) {
-    // 広告なし
-  } else if (videos[1].src != "") {
-    console.log('[NicoAdsSkip] 広告検出！スキップします');
+  // スキップボタンがあればクリック
+  clickSkipButton();
 
-    // 広告動画を停止・無効化
-    videos[1].src = "";
-    videos[1].pause();
-    videos[1].style.display = "none";
-    videos[1].remove();  // DOM から削除
+  // 2番目以降のvideo要素（広告）をチェック
+  for (let i = 1; i < videos.length; i++) {
+    const adVideo = videos[i];
+    if (adVideo && adVideo.src !== "") {
+      console.log('[NicoAdsSkip] 広告検出！スキップします');
 
-    // メイン動画を再生
-    if (videos[0]) {
-      videos[0].muted = false;
-      videos[0].play().catch(() => {});
-      console.log('[NicoAdsSkip] メイン動画再生開始');
+      // 広告を最後までスキップ
+      if (adVideo.duration) {
+        adVideo.currentTime = adVideo.duration;
+      }
+
+      // 終了イベントを発火
+      adVideo.dispatchEvent(new Event('ended'));
+
+      // 停止・無効化
+      adVideo.src = "";
+      adVideo.pause();
+      adVideo.style.display = "none";
+
+      console.log('[NicoAdsSkip] 広告スキップ完了');
     }
-
-    clearInterval(adSkip);
-    adSkip = null;
-    console.log('[NicoAdsSkip] 広告スキップ完了');
-  } else if (videos[1]) {
-    // srcが空でも広告要素があれば即座に非表示
-    videos[1].style.display = "none";
-    videos[1].muted = true;
   }
+
+  // メイン動画が一時停止中なら再生
+  if (videos[0] && videos[0].paused && videos[0].src) {
+    videos[0].play().catch(() => {});
+  }
+}
+
+/**
+ * スキップボタンを探してクリック
+ */
+function clickSkipButton() {
+  // 様々なスキップボタンのセレクタを試す
+  const selectors = [
+    '[class*="skip"]',
+    '[class*="Skip"]',
+    '[data-click-action*="skip"]',
+    'button[class*="ad"]',
+    '.SkipButton',
+    '.skip-button',
+    '[aria-label*="スキップ"]',
+    '[aria-label*="skip"]'
+  ];
+
+  for (const selector of selectors) {
+    const buttons = document.querySelectorAll(selector);
+    for (const btn of buttons) {
+      if (btn.offsetParent !== null) {  // 表示されている要素のみ
+        console.log('[NicoAdsSkip] スキップボタンをクリック');
+        btn.click();
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /**
