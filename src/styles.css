@@ -1,0 +1,76 @@
+/**
+ * Nico Ads Skip - バナー広告非表示CSS
+ */
+
+/* 広告コンテナ */
+[class*="AdContainer"],
+[class*="ad-container"],
+[class*="Ad-container"],
+[id*="ad-container"],
+[class*="adFrame"],
+[class*="AdFrame"] {
+  display: none !important;
+}
+
+/* バナー広告 */
+[class*="Banner"],
+[class*="banner"][class*="ad"],
+[class*="billboard"],
+[class*="Billboard"] {
+  display: none !important;
+}
+
+/* サイドバー広告 */
+[class*="SideAd"],
+[class*="side-ad"],
+[class*="Sidebar"][class*="Ad"],
+[class*="RightAd"] {
+  display: none !important;
+}
+
+/* インストリーム広告オーバーレイ */
+[class*="InStreamAd"],
+[class*="instreamAd"],
+[class*="VideoAd"],
+[class*="video-ad"],
+[class*="PrerollAd"] {
+  display: none !important;
+}
+
+/* プロモーション */
+[class*="Promotion"],
+[class*="promotion"],
+[class*="Sponsored"],
+[class*="sponsored"] {
+  display: none !important;
+}
+
+/* ニコニコ特有の広告要素 */
+.nicoadVideoItem,
+[class*="nicoad"],
+[class*="NicoAd"],
+[class*="nico-ad"] {
+  display: none !important;
+}
+
+/* 広告プレースホルダー */
+[class*="AdPlaceholder"],
+[class*="ad-placeholder"],
+[class*="AdSlot"],
+[class*="ad-slot"] {
+  display: none !important;
+}
+
+/* Google広告 */
+[id^="google_ads"],
+[class*="google-ad"],
+ins.adsbygoogle {
+  display: none !important;
+}
+
+/* iframe広告 */
+iframe[src*="ad"],
+iframe[src*="doubleclick"],
+iframe[src*="googlesyndication"] {
+  display: none !important;
+}
