@@ -4,144 +4,67 @@
 
 console.log('[NicoAdsSkip] 拡張機能が読み込まれました');
 
-let adSkipInterval = null;
-let adSkipped = false;
+let adSkip = null;
 
 /**
- * 動画広告をスキップ
- * 広告は2番目のvideo要素として読み込まれる
+ * 広告スキップ処理（ユーザー提供のロジック）
  */
-function skipVideoAd() {
+function skip() {
   const videos = document.getElementsByTagName('video');
 
-  // 2番目のvideo要素（広告）が存在し、srcがある場合
-  if (videos[1] && videos[1].src !== '') {
-    console.log('[NicoAdsSkip] 動画広告を検出、スキップします');
-    videos[1].src = '';
+  // デバッグ: video要素の数と状態を出力
+  console.log('[NicoAdsSkip] video要素数:', videos.length);
+  for (let i = 0; i < videos.length; i++) {
+    console.log(`[NicoAdsSkip] video[${i}] src:`, videos[i].src ? videos[i].src.substring(0, 50) + '...' : '(empty)');
+  }
+
+  // 2番目のvideo要素（広告）をチェック
+  if (videos[1] == null) {
+    // 広告なし
+  } else if (videos[1].src != "") {
+    console.log('[NicoAdsSkip] 広告検出！スキップします');
+    videos[1].src = "";
     videos[1].pause();
-    adSkipped = true;
-
-    // インターバルを停止
-    if (adSkipInterval) {
-      clearInterval(adSkipInterval);
-      adSkipInterval = null;
-      console.log('[NicoAdsSkip] 広告スキップ完了');
-    }
+    clearInterval(adSkip);
+    adSkip = null;
+    console.log('[NicoAdsSkip] 広告スキップ完了');
   }
 }
 
 /**
- * 広告スキップを開始
+ * 広告監視を開始
  */
-function startAdSkip() {
-  if (adSkipInterval) return;
+function startSkip() {
+  if (adSkip) {
+    clearInterval(adSkip);
+  }
+  console.log('[NicoAdsSkip] 広告監視開始');
+  adSkip = setInterval(skip, 100);
 
-  adSkipped = false;
-  adSkipInterval = setInterval(skipVideoAd, 100);
-  console.log('[NicoAdsSkip] 広告監視を開始');
-
-  // 30秒後に自動停止（広告がない場合）
+  // 60秒後にタイムアウト
   setTimeout(() => {
-    if (adSkipInterval && !adSkipped) {
-      clearInterval(adSkipInterval);
-      adSkipInterval = null;
-      console.log('[NicoAdsSkip] 広告監視をタイムアウトで停止');
+    if (adSkip) {
+      clearInterval(adSkip);
+      adSkip = null;
+      console.log('[NicoAdsSkip] タイムアウトで監視停止');
     }
-  }, 30000);
+  }, 60000);
 }
 
-/**
- * スキップボタンがあればクリック
- */
-function clickSkipButton() {
-  // スキップボタンのセレクター（ニコニコ動画の広告スキップボタン）
-  const skipSelectors = [
-    '[class*="SkipButton"]',
-    '[class*="skip"]',
-    '[data-name="skip"]',
-    '.AdSkipButton',
-    '.SkipAdButton'
-  ];
-
-  for (const selector of skipSelectors) {
-    const btn = document.querySelector(selector);
-    if (btn && btn.offsetParent !== null) {
-      console.log('[NicoAdsSkip] スキップボタンをクリック');
-      btn.click();
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * 広告関連要素を非表示
- */
-function hideAdElements() {
-  // 広告コンテナのセレクター
-  const adSelectors = [
-    '[class*="AdContainer"]',
-    '[class*="ad-"]',
-    '[class*="Ad-"]',
-    '[id*="ad-"]',
-    '[class*="Billboard"]',
-    '[class*="Promotion"]',
-    '.nicoadVideoItem',
-    '[class*="InStreamAd"]'
-  ];
-
-  adSelectors.forEach(selector => {
-    document.querySelectorAll(selector).forEach(el => {
-      if (el.style.display !== 'none') {
-        el.style.display = 'none';
-        console.log('[NicoAdsSkip] 広告要素を非表示:', selector);
-      }
-    });
-  });
-}
-
-// DOM変更を監視して動的に追加される広告にも対応
-const observer = new MutationObserver((mutations) => {
-  // スキップボタンを探してクリック
-  clickSkipButton();
-
-  // 広告要素を非表示
-  hideAdElements();
-
-  // video要素が追加されたら広告チェック
-  for (const mutation of mutations) {
-    if (mutation.addedNodes.length > 0) {
-      const hasVideo = Array.from(mutation.addedNodes).some(
-        node => node.nodeName === 'VIDEO' ||
-                (node.getElementsByTagName && node.getElementsByTagName('video').length > 0)
-      );
-      if (hasVideo && !adSkipInterval) {
-        startAdSkip();
-      }
-    }
-  }
-});
-
-// ページ読み込み完了後に開始
+// ページ読み込み時に開始
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    observer.observe(document.body, { childList: true, subtree: true });
-    startAdSkip();
-    hideAdElements();
-  });
+  document.addEventListener('DOMContentLoaded', startSkip);
 } else {
-  observer.observe(document.body, { childList: true, subtree: true });
-  startAdSkip();
-  hideAdElements();
+  startSkip();
 }
 
-// ページ遷移時（SPA対応）
+// URL変更検出（SPA対応）
 let lastUrl = location.href;
-setInterval(() => {
+const urlObserver = new MutationObserver(() => {
   if (location.href !== lastUrl) {
     lastUrl = location.href;
     console.log('[NicoAdsSkip] ページ遷移検出');
-    adSkipped = false;
-    startAdSkip();
+    startSkip();
   }
-}, 1000);
+});
+urlObserver.observe(document.body, { childList: true, subtree: true });
